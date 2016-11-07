@@ -29,6 +29,70 @@ http.listen(PORT, function () {
 //  ===================================================
 // ==> LOGIN PAGE FOR ADHOC LOADER ( <SERVER-IP>:<PORT>/ EG: localhost:5000 )
 
-app.get('/',function(req,res){
-    res.sendfile('public/index.html'); 
+app.get('/dashboard',function(req,res){
+    res.sendfile('public/web_template/production/index3.html'); 
 });
+
+
+//	SOCKET.IO 	
+
+io.on('connection', function (socket) {
+
+	main()
+
+	function main(){
+		var file = 'python/data_files/raw.json'
+
+		fs.readFile(file, 'utf8', function(err, contents) {
+    
+    		var jsoncontents = JSON.parse(contents.replace(/'/g,"\""));
+    
+    		socket.emit('process count', { process_count : jsoncontents["data"].length });
+    		socket.emit('CPU usage', {cpu_usage : calculate_cpu(jsoncontents) });
+    		socket.emit('RAM usage', {ram_usage : calculate_ram(jsoncontents) });
+    		calculate_disk()
+  	
+  			socket.on('my other event', function (data) {
+    			console.log(data);
+  			});
+		
+		});
+	}
+
+	function callback(data1){
+		socket.emit('Disk Space Usage', {disk_space_usage : data1 });
+	}
+
+
+	function calculate_disk(){
+	var diskspace = require('diskspace');
+	diskspace.check('/', function (err, total, free, status){
+			var disk_val = 0.00;
+			disk_val = (100-((free/total)*100));
+			callback(disk_val.toFixed(2));
+		});
+	}
+
+
+
+	function calculate_cpu(jsoncontents){
+		var total_cpu = 0.0;
+		for(var i=0; i<jsoncontents["data"].length; i++){
+			total_cpu = total_cpu + parseFloat(jsoncontents["data"][i]["CPU"]);
+		}
+		return(total_cpu.toFixed(2));
+	}
+
+
+	function calculate_ram(jsoncontents){
+		var total_ram = 0.0;
+		for(var i=0; i<jsoncontents["data"].length; i++){
+			total_ram = total_ram + parseFloat(jsoncontents["data"][i]["RAM"]);
+		}
+		return(total_ram.toFixed(2));
+	}
+
+
+
+});
+

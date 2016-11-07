@@ -1,46 +1,34 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+var express = require('express');               //  ==> EXPRESS IN A VARIABLE. IT IS A FRAMEWORK WHICH HELPS YOUR FRONT-END LOOK BETTER     (http://expressjs.com/) 
+var app = express();                            //  ==> ASSIGNING EXPRESS TO THIS APP VARIABLE      (http://expressjs.com/en/starter/hello-world.html)
+var http = require('http').Server(app);         //  ==> BINDING EXPRESS WITH HTTP SERVER MODULE     (https://nodejs.org/api/http.html)
+var io = require('socket.io')(http);            //  ==> BINDING HTTP INSTANCE WITH SOCKET IO FOR SERVER & CLIENT SIDE COMMUNICATION     (http://socket.io/)
+var PythonShell = require('python-shell');      //  ==> PACKAGE TO EXECUTE PYTHON SCRIPTS       (https://www.npmjs.com/package/python-shell)
+var fs = require('fs');                         //  ==> PACKAGE WHICH DEALS WITH FILES      (https://nodejs.org/api/fs.html)
+var jsonfile = require('jsonfile');             //  ==> PACKAGE TO READ A JSON FILE     (https://www.npmjs.com/package/jsonfile)
 
-var index = require('./routes/index');
-var users = require('./routes/users');
 
-var app = express();
+//  APPLICATION START-UP DIRECTORY
+//  ==============================
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.use(express.static(__dirname + '/public'));
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/users', users);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+//  PORT AT WHICH THE NODE APPLICATION LISTENS
+//  ==========================================
+
+var PORT = process.env.PORT || 80;
+http.listen(PORT, function () {
+  console.log('Server Started at Port = ' + PORT);
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+
+
+//  ROUTES FOR WEB PAGES (THIS IS FOR SECURITY REASONS)
+//  ===================================================
+// ==> LOGIN PAGE FOR ADHOC LOADER ( <SERVER-IP>:<PORT>/ EG: localhost:5000 )
+
+app.get('/',function(req,res){
+    res.sendfile('public/index.html'); 
 });
-
-module.exports = app;
